@@ -16,8 +16,10 @@ class STS:
         return self.data.get(self.id)
 
     def store(self, From, to, skip, limit, thread_id=None):
+        expected_total = max(1, int(limit) - int(skip) + 1)
         self.data[self.id] = {"FROM": From, 'TO': to, 'total_files': 0, 'skip': skip, 'limit': limit,
-                      'fetched': skip, 'filtered': 0, 'deleted': 0, 'duplicate': 0, 'total': limit, 'start': 0, 'thread_id': thread_id}
+                      'fetched': skip, 'filtered': 0, 'deleted': 0, 'duplicate': 0, 'total': limit,
+                      'expected_total': expected_total, 'start': 0, 'thread_id': thread_id}
         self.get(full=True)
         return STS(self.id)
 

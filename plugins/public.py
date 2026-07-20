@@ -111,14 +111,47 @@ async def forward_mode(bot, query):
         InlineKeyboardButton('No', callback_data="close_btn")
     ]]
     reply_markup = InlineKeyboardMarkup(buttons)
-    await bot.send_message(
-        user_id,
-        text=Script.DOUBLE_CHECK.format(botname=_bot['name'], botuname=_bot['username'], from_chat=title, to_chat=to_title, skip=skip),
-        disable_web_page_preview=True,
-        reply_markup=reply_markup
-    )
+
+    if mode == "range":
+        src_label = {"channel": "📡 Channel", "group": "👥 Normal Group", "topic": "🗂 Supergroup Topic"}.get(src_type, "📡 Channel")
+        expected_total = max(1, int(last_msg_id) - int(skip) + 1)
+        per_msg_delay = 1 if _bot['is_bot'] else 10
+        eta_seconds = expected_total * per_msg_delay
+        eta = _format_duration(eta_seconds)
+        await bot.send_message(
+            user_id,
+            text=Script.RANGE_CONFIRM.format(
+                from_chat=title, src_label=src_label, to_chat=to_title,
+                first_id=skip, last_id=last_msg_id, expected_total=expected_total,
+                delay=per_msg_delay, eta=eta,
+                botname=_bot['name'], botuname=_bot['username']
+            ),
+            disable_web_page_preview=True,
+            reply_markup=reply_markup
+        )
+    else:
+        await bot.send_message(
+            user_id,
+            text=Script.DOUBLE_CHECK.format(botname=_bot['name'], botuname=_bot['username'], from_chat=title, to_chat=to_title, skip=skip),
+            disable_web_page_preview=True,
+            reply_markup=reply_markup
+        )
     STS(forward_id).store(chat_id, toid, int(skip), int(last_msg_id), thread_id)
     getattr(temp, 'FWD_SETUP', {}).pop(user_id, None)
+
+
+def _format_duration(seconds):
+    seconds = int(seconds)
+    h, rem = divmod(seconds, 3600)
+    m, s = divmod(rem, 60)
+    parts = []
+    if h:
+        parts.append(f"{h}h")
+    if m:
+        parts.append(f"{m}m")
+    if s or not parts:
+        parts.append(f"{s}s")
+    return " ".join(parts)
 
 
 # Telegram message link formats:
