@@ -53,18 +53,52 @@ async def restart(client, message):
     execle(sys.executable, sys.executable, "main.py", environ)
 
 
-@Client.on_callback_query(filters.regex(r'^help'))
+@Client.on_message(filters.private & filters.command(['help']))
+async def help_cmd(client, message):
+    buttons = _help_menu_buttons()
+    await message.reply_text(text=Script.HELP_TXT, reply_markup=buttons)
+
+
+def _help_menu_buttons():
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton('📖 About This Bot', callback_data='help#about_bot')],
+        [InlineKeyboardButton('🤖 Bot & Userbot Setup Guide', callback_data='help#bot_setup')],
+        [InlineKeyboardButton('📥 Source Setup Guide', callback_data='help#source_guide')],
+        [InlineKeyboardButton('📤 Destination Setup Guide', callback_data='help#dest_guide')],
+        [InlineKeyboardButton('⚙️ Settings Guide', callback_data='help#settings_guide')],
+        [InlineKeyboardButton('🛡️ Where Admin Is Needed', callback_data='help#admin_guide')],
+        [InlineKeyboardButton('• back', callback_data='back')],
+    ])
+
+
+def _back_to_help_button():
+    return InlineKeyboardMarkup([[InlineKeyboardButton('⬅️ Back to Help', callback_data='help#menu')]])
+
+
+@Client.on_callback_query(filters.regex(r'^help(#.*)?$'))
 async def helpcb(bot, query):
-    buttons = [[
-        InlineKeyboardButton('🤔 ʜᴏᴡ ᴛᴏ ᴜsᴇ ᴍᴇ ❓', callback_data='how_to_use')
-    ],[
-        InlineKeyboardButton('Aʙᴏᴜᴛ ✨️', callback_data='about'),
-        InlineKeyboardButton('⚙ Sᴇᴛᴛɪɴɢs', callback_data='settings#main')
-    ],[
-        InlineKeyboardButton('• back', callback_data='back')
-    ]]
-    reply_markup = InlineKeyboardMarkup(buttons)
-    await query.message.edit_text(text=Script.HELP_TXT, reply_markup=reply_markup)
+    _, _, sub = query.data.partition('#')
+
+    if not sub or sub == 'menu':
+        return await query.message.edit_text(text=Script.HELP_TXT, reply_markup=_help_menu_buttons())
+
+    sub_pages = {
+        'about_bot': Script.ABOUT_BOT_TXT,
+        'bot_setup': Script.BOT_SETUP_GUIDE_TXT,
+        'source_guide': Script.SOURCE_SETUP_GUIDE_TXT,
+        'dest_guide': Script.DESTINATION_SETUP_GUIDE_TXT,
+        'settings_guide': Script.SETTINGS_GUIDE_TXT,
+        'admin_guide': Script.ADMIN_REQUIREMENTS_TXT,
+    }
+    text = sub_pages.get(sub)
+    if not text:
+        return await query.message.edit_text(text=Script.HELP_TXT, reply_markup=_help_menu_buttons())
+
+    await query.message.edit_text(
+        text=text,
+        reply_markup=_back_to_help_button(),
+        disable_web_page_preview=True,
+    )
 
 
 @Client.on_callback_query(filters.regex(r'^how_to_use'))
