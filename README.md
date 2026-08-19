@@ -1,4 +1,4 @@
-# 🤖 VJ Forward Bot (Simple Bot)
+# 🤖 Cosmos Forward Bot (Simple Bot)
 
 A multi-tenant **Telegram auto-forward bot** built on **Pyrogram (MTProto)**. Each Telegram user can connect their own bot or userbot session, configure a source and destination (channel, normal group, or forum/topic-wise supergroup), and forward messages — either the newest ones or a specific ID/link range — with filters, custom captions, buttons, and duplicate detection.
 
